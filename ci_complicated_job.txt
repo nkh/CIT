@@ -1,0 +1,47 @@
+top job
+	job platform 1
+		create exec 1
+
+	job platform 2
+		create exec 2
+
+	job platform 3
+		create exec 3
+
+	job platform 1
+		create zip 1 containing
+			exec 1
+			exec 2
+			exec 3
+
+	job platform 2
+		create zip 2 containing
+			exec 1
+			exec 2
+			exec 3
+
+	job platform 3
+		create zip 3 containing
+			exec 1
+			exec 2
+			exec 3
+
+	job platform 1
+		test zip 1
+		test zip 2
+		test zip 2
+		create test report
+
+	job platform 2
+		test zip 1
+		test zip 2
+		test zip 2
+		create test report
+
+	job platform 3
+		test zip 1
+		test zip 2
+		test zip 2
+		create test report
+
+	create report with sum of test result

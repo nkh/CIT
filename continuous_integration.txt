@@ -1,0 +1,109 @@
+Build environment components
+	Configuration management: 
+		what to build
+		build my local system
+	Configuration: how to build
+	Build process: system description
+	Build tools
+	test system
+	continuous integration
+	installation
+	binary repository
+		triggering build when changed
+	source repositories
+	controlled build environment
+	build comprehension
+	build debugging
+
+Continuous integration
+	build logs: for complete build, for build components
+		should be the build system build logs
+		alternative is the terminal output
+
+	Reports:
+		build failed/succeeded 
+		generated artefacts
+		presents the builds in a hierarchy (tabs, ...)
+		previous builds
+
+	triggering
+		start job manually
+		repo  dependencies
+		build scheduling
+			synchronize builds with equivalent input	
+
+	access to workspace
+		only to code that the user can checkout
+
+	keeps credential for repos
+
+	UI
+		configure jobs
+	replay
+	scripting to implement build steps
+	scripting to control CI system
+	plugins
+
+	Agents
+		multiplatform build
+		pre-setup agents (build tools, ...)
+			local cache
+		agent configuration and management
+			list of agents
+				can be a share list in a repository
+
+		find agent for a build
+			the build itself can find the agent among the available agents
+					
+
+	stashing
+		binary repo per build
+
+	unique build ID
+		generated on the machine where the build is started 
+
+	setup CI job
+		clone jobs
+		different types of jobs
+			support one type or let the jobs decide what they are
+				what does Jenkins support and why?
+					triggering by repo checkins
+
+		scheduling
+			scheduled at the trigger 
+			rescheduled by maintainer
+				pause, restart later (via cron)
+				kill
+			immediate if possible, after finding a free agent
+ 
+	build under an alias and protect the build code 
+		IE: user without rights can build projects that need special access to repo
+			find a node in the cluster that can build as an alias
+				parallel
+					ssh to node
+						include path to special jobs
+						run can_build_XXX_protected
+						
+						test dependencies
+							tools
+							docker images
+		
+						cpu, disk, ...  availability
+						
+
+				decide where to be build
+					or queue (can be handled by the trigger)
+
+				build
+					generate unique build ID
+
+					ssh to node
+						build self or ask a can_build?
+
+						gather all necessary dependencies (tools, docker)
+
+						wrap build system to catch output
+
+						run build system
+		
+		
