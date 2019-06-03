@@ -1,0 +1,144 @@
+context:
+	full access to the code repositories
+	no direct access to the binary repository	
+
+goals:
+	start a build on a build node via the ci system
+
+		cit init args ....
+			* can create a local git repo for cit  commands
+			* create cit in sub directory
+
+		pass extra configuration to the build
+			* extra configuration is either created by hand or by a tool
+				it is passed as a file to the build system
+				(or as environment variables, via the execution of a shell script)
+				
+				the extra configuration is put under version control before the build
+
+			* cit --extra_configuration repo/version/file
+
+		prioritize the build
+			* prioritization can be done for "similar" builds
+				or build started by this user
+				
+			* build scheduled by other groups can only be re-prioritized by admins
+				admin re-prioritize by using a CLI app or sending "Null" jobs
+
+		* the build starts on a build node by calling the cit command with specific arguments
+			cit doesn't know about what's being executed to build, no citfile, just an executable
+
+
+		* cit does these steps
+			* parses options
+				--schedule later (influence scheduling on CLI)
+				--nop  (do no build, just a simulation)
+				--name (added to the uuid file name, to allow tab completion)
+
+			generates and outputs a UUID
+
+			checks on the build nodes if the necessary resources are available
+				* we need a list of build nodes where this user can build
+					* probe at add-build time
+					* probe at schedule time
+						* look at kubernetes scheduler 
+
+				creates a prioritized list of build nodes
+					a node where an incremental build can be done is a good candidate
+						optimization opportunities exist
+							locally cache all repos on build nodes
+							often build projects workspace can be duplicated to 
+								allow incremental build on more nodes
+
+			scans the build nodes to find matching nodes and their availability
+				displays, optionally, scheduling information to the user
+
+			create a job description and queues it (mails it)  
+				even nop jobs are queued to allow debugging of the queue
+			
+
+	get a status at regular intervals from ci system
+		on the command line
+			cit status UUID or name_UUID_file
+			
+			cit status UUID --status --log 10 --verbose
+				cit get_log UUID | tail -n 100 
+				
+			cit find --builds=mine ... cit find | grep build_owner=nadim
+
+			** get minimum amount of data necessary fromm build nodes and do all the processing locally
+
+		in a UI, continuously
+			* UI is the same as command line
+				clear, command line, repeat till ^C is hit 
+				use "watch" command
+					regex the output to stop?
+
+	see the log
+		cit log UUID
+
+		CIT_UUID=hash_or_file cit log 
+		
+
+		cit start args > blue
+		CIT_UUID=blue
+
+		cit status
+
+		cit status red 
+
+
+
+		mydir/
+			.cit
+				[UUID = blue]
+	
+			blue
+				[ ci build meta data ]
+
+
+
+	be in the workspace 
+		cit ssh
+			update build node
+			ssh
+
+
+	get a final report
+		automatically done when doing status
+
+
+	ls_artefacts
+		cit ls_artefact | grep lib | xargs cit get_artefact	
+	
+
+	get_build_dir
+		cit clone build_dir
+	
+	get_workspace
+		cit clone workspace
+			rsynch --exclude .git
+
+
+	delete the build
+		remove all traces of the build including artefacts
+			ssh rm -rf
+			repo --clean
+
+
+
+
+
+
+
+
+
+
+on build node
+
+	cit --server = black build  get_artefacts
+
+		answer: server_path
+			rsync server_path build_dir_component_black
+
+

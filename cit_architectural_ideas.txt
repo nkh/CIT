@@ -1,0 +1,179 @@
+Simple parts connected by clean interfaces
+	part are easily changed
+	part can be written in any language, will be written in multiple languages!
+
+Information (Debugging) is a not an afterthought 
+
+the continuous integration framework consists of a set of small programs that can be used
+	by the user, the automation system that builds components
+
+No master 
+
+automated installation
+
+No database (or database that act like a file system)
+
+build nodes are considered secured (and must be secured)
+	direct access to them is subject to access control
+	data access is via a secured protocol implementing access contol or 
+		via encryption of the send data	
+
+distribute the workload (no master)
+	computation of what needs to bedone,where can be done on client machines
+	distribute the data load
+		logs, reports, ... are shared from the node having the data to the user machine directly
+	distribute reporting load
+		only data is transfered, report generation is done on the user machine
+			reports can be send back or cached or put in the binary repo
+Continuous integration
+	access control
+		persons looking at builds, artefacts, reports, code, ... must have the right to
+
+	build logs:
+		use a build system that generates better logs
+
+		wrap components builds in different logs
+			not changing the build system just the system around it
+
+		redirect all output in a/multiple log file
+
+		wrap the bash, if necessary, to associate logs to a component build
+
+		if log is hierarchical, components have separate logs, it is possible to see the 
+		hierarchy and traverse it
+
+
+	Reports:
+		keep list of builds started locally (and some meta data)
+			we may not be interested by more than those builds
+
+		keep list of global builds
+			synch with the build queue?
+			only build we can access are synchronized
+
+			how do we send our access keys?
+			data send back must be encrypted
+		
+
+		build running/failed/succeeded -> location
+		
+		generated artefacts
+			go to the binary repo
+				binary repo has access control
+
+			are accessible via scp
+
+		presents the builds in a hierarchy (tabs, ...)
+
+		previous builds
+
+	triggering
+		start job manually
+		repo  dependencies
+		build scheduling
+			synchronize builds with equivalent input	
+
+	access to workspace
+		only to code that the user can checkout
+
+	keeps credential for repos
+		NOPE, uses nodes with the right credentials and get back artefacts
+
+	UI, configure jobs
+		NOPE, all config files under version control
+			EG: make a branch change the config, build the branch
+
+		if the repos are not accessible but still need a specific configuration
+			the configuration can be in a separate repo that is accessible
+			make a branch, checking changes, give name of branch as input to the main build
+
+	replay
+		if the repo is not accessible then replay is not accessible
+
+		if accessible, clone the repo, rebuild the local changes
+			locally if possible
+			on CI-cluster otherwise
+		
+			optimize by using binary repo from CI-cluster
+
+
+
+	scripting to implement build steps
+		NOPE! build in the build system
+
+		add a layer of build system if necessary
+
+		
+
+	scripting to control CI system
+	plugins
+
+	Agents
+		multiplatform build
+		pre-setup agents (build tools, ...)
+			local cache
+		agent configuration and management
+			list of agents
+				can be a share list in a repository
+
+		find agent for a build
+			the build itself can find the agent among the available agents
+					
+
+	stashing
+		binary repo per build
+		
+		this means that multiple builds with the same configuration having the same
+		stashed artefact (yes it's the same or we have a bigger problem) can share the 
+		same artefact (and no need to build it either)
+
+	synchronizing jobs on different build nodes
+
+	unique build ID
+		generated on the machine where the build is started 
+
+	setup CI job
+		clone jobs
+		different types of jobs
+			support one type or let the jobs decide what they are
+				what does Jenkins support and why?
+					triggering by repo checkins
+
+		scheduling
+			scheduled at the trigger 
+			rescheduled by maintainer
+				pause, restart later (via cron)
+				kill
+			immediate if possible, after finding a free agent
+ 
+	build under an alias and protect the build code 
+		IE: user without rights can build projects that need special access to repo
+			find a node in the cluster that can build as an alias
+				parallel
+					ssh to node
+						include path to special jobs
+						run can_build_XXX_protected
+						
+						test dependencies
+							tools
+							docker images
+		
+						cpu, disk, ...  availability
+						
+
+				decide where to be build
+					or queue (can be handled by the trigger)
+
+				build
+					generate unique build ID
+
+					ssh to node
+						build self or ask a can_build?
+
+						gather all necessary dependencies (tools, docker)
+
+						wrap build system to catch output
+
+						run build system
+		
+		
