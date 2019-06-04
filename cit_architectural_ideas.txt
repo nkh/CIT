@@ -17,9 +17,10 @@ build nodes are considered secured (and must be secured)
 	direct access to them is subject to access control
 	data access is via a secured protocol implementing access contol or 
 		via encryption of the send data	
+	using ssl keys
 
 distribute the workload (no master)
-	computation of what needs to bedone,where can be done on client machines
+	computation of what needs to be done,where can be done on client machines
 	distribute the data load
 		logs, reports, ... are shared from the node having the data to the user machine directly
 	distribute reporting load
@@ -177,3 +178,79 @@ Continuous integration
 						run build system
 		
 		
+Workspaces per user Vs per cit
+	all work is done as the user to be able to check credentials
+
+	this means that the same build started by different users will have different Worspaces
+		if a lot of users start the same job a lot of duplicates will exist
+
+	Note that this is the right thing to do, there is no reason someone's build is share with someone else
+
+	* the workdirs are called after the UUID
+		but they can be under the build name
+
+	if group builds, sharing worspaces, are needed, build as a group representative
+		that needs to be a service, once that is accessible to people in the group only
+		the workspaces are reachable as the users are part of the group
+
+
+
+scheduling jobs on the nodes from the scheduler
+	the job run as user but the user is not logged in and the scheduler should not
+		run as root nor start the build as the user
+
+	so the user, on the build node, has to wait till the scheduler allows it to run
+		this means that the user could just run without scheduling
+			* good or bad that the user has an account on the cluster?
+
+	root could help control the users, not letting them run anything before the scheduler
+	allows them to run a job (what's in the job can't be controlled, just how much it gets to run)
+
+
+	job waits for a notification to start, a mail, a file in a directory accessible by cit scheduler?
+		cit runs the build, in UUID_directory, based on the meta data	
+
+		who starts the waiting job?
+			cit when it queues the job to the scheduler
+			jobs are serialized  so they can be put in the wait queue in case of errors
+
+		* we can probe all the shared directory to check who has job queued
+
+		
+statistics about build node usage
+	needed to plan future capacity
+
+	some of the data we need:
+		load per machine
+		load per job
+		resource needed per job
+
+		disk usage
+
+	* just data extraction, stats done by someone else
+
+
+workspace retention:
+	building for ourselves we can cleanup our own worskpaces
+
+	what if there is not enough disk space and the other workspaces are not under our control?
+		start a cleanup job per user from the scheduler
+
+
+how do we handle "latest"?
+	*** builds that use latest of some repo should be killed, optionally, if a new latest pops up
+
+	so we need to keep a list of the running jobs or poll the build nodes
+
+
+
+
+ 
+
+
+backup of scheduling data and build data
+	
+		
+
+
+

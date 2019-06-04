@@ -1,0 +1,72 @@
+context:
+	access to no code repositories
+	no direct access to the binary repository	
+
+goals:
+	start a build on a build node via the ci system
+		Build says:
+
+			cit remote config_file
+				log the queueing
+
+			VCS checkout would fail on non accessible repos
+
+
+		* we need to:
+			wait for the remote build to end
+			get the artefacts
+
+				* select which artefacts to get, and where to put them, to 
+					reduce the amount of data transfered
+
+					put that in the config file
+
+			** config file
+
+				what to build
+				extra config
+				build config
+				where to build
+				access, remote build checks users
+
+				what to get and where to put it
+						
+
+	get a status at regular intervals from ci system
+		no difference, status UUID
+
+	see the log
+		it's the log of this build so no problem looking into it
+		the non reachable repos build in other workspaces
+		
+		the log should contain the UUID of the remote-build so someone with access
+		can get the logs and debug if necessary
+
+	be in the workspace 
+		no problem either, no code nor artefact that is not exported by separate
+		build will be available here
+
+
+	get a final report
+
+	get_artefacts (if we can't get anything else but artefact then "get" is better)
+		ls_artefacts
+
+	get_build_dir
+		also possible, the build is no different local and remote
+		also, we can restart the build here and if some artefacts were
+		exported by remote-builds, we won't need to rebuild them
+			* the remote build needs to know about our artefacts to not rebuild
+				* the remote build should have a public and private part
+					the public part can take care of the synchronizing
+					with whatever is in the build dir as they generate it
+					the config for the build is also necessary
+
+	get_workspace
+		also possible
+
+	delete the build
+		also possible
+
+
+
