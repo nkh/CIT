@@ -23,8 +23,6 @@ How do we build a local setup as a CI job?
 
 		cit creates a job description and queues it
 
-how do we get a
-	
 CI framework doesn't know how to start builds
 	only user knows how a build is done
 		total separation CI - build system
@@ -418,6 +416,7 @@ Continuous integration
 			the artefact name contains the job ID (even better a hash so artefacts can be shared)
 
 	synchronizing jobs on different build nodes
+		IE: star a job and wait for it to succeed
 
 	unique build ID
 		generated on the machine where the build is started 
@@ -494,12 +493,12 @@ scheduling jobs on the nodes from the scheduler
 
 	root could help control the users, not letting them run anything before the scheduler
 	allows them to run a job (what's in the job can't be controlled, just how much it gets to run)
+		suid script that reduce pid ressources if pid belongs to user that has no work scheduled
 
+	job waits for a notification to start,  a file in a directory accessible by cit scheduler?
+		cit (under the users account) runs the build, in UUID_directory, based on the meta data	
 
-	job waits for a notification to start, a mail, a file in a directory accessible by cit scheduler?
-		cit runs the build, in UUID_directory, based on the meta data	
-
-		who starts the waiting job?
+		who starts the waiting  
 			cit when it queues the job to the scheduler
 			jobs are serialized  so they can be put in the wait queue in case of errors
 
