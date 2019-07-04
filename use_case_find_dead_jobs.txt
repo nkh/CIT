@@ -1,0 +1,143 @@
+each morning
+	look at all the jobs still running
+		find the jobs that run longer than the average
+			find information on them
+				kill the jobs that should be killed
+
+
+how is that done in cit
+	some automated processing
+
+	generate a list of the jobs to kill for validation 
+		can also list the jobs that were already killed automatically
+
+	user interactively edits the list in $EDITOR
+
+	?? $EDITOR was run automatically
+		?? $? = 0 
+			cit kill list (see below)
+		!!
+			printf message
+
+	!! user needs to run: cit kill list (see below) (interactive or not)
+
+generate "kill list" is a job
+	it can be scheduled
+
+	it can do automated administration
+
+	or it can create a "kill job" for interactive validation
+			
+	"kill job" can be delivered 
+		as a mail
+		checked in some binary/source repo
+
+		added to the waiting jobs (WJ) queue
+		 	the WJs belong to the admin so no one else sees them
+			the administrator can list, download, remove, run WJs
+				list, download, remove is handled via the normal cit mechanism
+
+			running WJ
+				WJ have a sleep prio, changing them to admin prio boosts them to the top
+					this forces us to have a special sleep prio (SBT) that doesn't run at all
+
+				WJ are not in the Q at all
+					this makes them more difficult to find
+					are triggered manually, IE: added to the Q
+
+				WJ are in the Q but wait for a trigger
+					also a special case (SBT)
+				
+				WJ are in the Q but wait for a resource
+					WJ waits for resource "ADMIN_VALIDATION" which doesn't exist
+						+ we can sort the jobs by the resource they need
+						
+					job owner, for any job but admin in this case, can edit the queued job
+						change the resource to nothing, the jub can run immediately
+
+			the job, added automatically, can be removed from the Q and downloaded, edited and loaded up again
+						
+"kill list" is a job
+	the job can run on multiple machines
+
+	the job can be as complex as the end user wants it to be
+
+	the job need to be run as an administrative job AJ
+		AJs are jobs that are taken first from the Q
+			each sub job list where the job should be run
+
+		different priorities are not a good thing!
+			but we need to think about job priorities anyway, in that case AJ are just the highest prios
+
+	advantage of having AJs
+		the same mechanism is used for "build" jobs and AJs
+		there is a trace for the job
+		the result of the job can be visualized
+		complexity of job is not limited by cit's API (so we don't need an API at all)
+
+
+
+job scheduling
+	cron
+		cit add job_to_be_run_in_the_morning
+	
+	manual
+		cit add job_to_be_run_in_the_morning
+			the job can be
+				blocking: waiting for the job to end
+				interactive: give back result on the user's terminal rather than having the user 
+
+blocking jobs
+	running a cit command waits till the command is finished running
+	this is particularly important when adding jobs, the cit command blocks till the job has been Qed and run to display the result of the build
+
+	the queued job is a normal job it is the cit command that is blocking
+		this allows us to kill the cit command without killing the job
+
+	if the job needs to be killed, the normal cit job management tools are used
+		the job ID is either taken
+			from the terminal (we got it when cit add was run)
+			the result of a job search
+
+"interactive" jobs
+	cit command
+		shows the state of the job (by polling and sleeping, like top)
+		at specific stages, imports data from the job and displays them
+
+
+
+killing jobs
+	remove them from the Q if they are still there
+	stop the jobs on the cluster if necessary
+	display information to the user killing the job
+
+	if the job is a dependency to other jobs, that information is shown and a confirmation is needed
+
+
+job dependencies
+	jobs can start jobs
+		that's how private sub modules (P-SM) are build
+
+		the top job is waiting for SM to finish building
+		killing a job updates the job state thus triggering the continuation of the top job (probably failure)
+
+	job dependencies must be visualized
+		when asking for a job description (dynamic)
+
+	job in the Queue should be marked as SM jobs
+
+	a SM job can be shared by multiple top jobs
+		two, or more, top jobs needs a SM that is not build yet
+			if the SM is build, should there be a SM job to fetch it?
+				probably as top jobs may need different artefacts from the SM	
+
+Queue snapshot
+	the Q changed all the time making it difficult to debug
+
+	Queues can be paused
+		cit command
+
+	Q snapshots can be taken (git repo a possible format but adds dependency)
+		Q snapshots can be diffed
+
+

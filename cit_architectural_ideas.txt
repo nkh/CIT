@@ -16,12 +16,49 @@ Information (Debugging) is a not an afterthought
 
 	a build must be traceable from birth to completion, including execution rights
 	
+	tool to step through a CI job instead for looking through logs that may be mixed with 
+		sub tools log output
+
 How do we build a local setup as a CI job?
 	we want to access resources in the cluster and not be bothered by creating a job description
-		cit takes a repo 
+		cit takes a repo and version  
 			possibly local as the remote job can checkout from our local setup
 
 		cit creates a job description and queues it
+
+
+how do we get a status after the job is build
+	the status exists on the cluster node where the build was done
+	the status exists in the done-Queue
+		done-Q is
+			per job
+			all jobs
+			my jobs
+			...
+
+	
+	the status is send from the job on the cluster node back to the main done-queue
+		a job is run by "cit run" job_id
+			cit run monitors the job till ends 
+				failure
+				or success
+
+			cit run updated the done-Q (and maybe success or failure Qs)
+				the status is kept on the cluster node before sending it to the done-Q
+					maybe in the job itself as a build artefact
+
+
+	done-job extra information is up to the job itself
+		if the information is a log, the log could be queried for ongoing job status
+			a bit like the stages in jenkins except it is not cit specific, it's just a log
+
+		user can query the log continuously to show the job ongoing status ("interactive")
+
+		"cit run" can update the ongoing-Q by synchronizing the log from cluster node to ongoing-Q node
+
+		 
+
+
 
 CI framework doesn't know how to start builds
 	only user knows how a build is done
@@ -137,8 +174,8 @@ No service
 			allowing admins to debug installation if necessary
 
 automated installation
-	no installation, only a user account is needed
-	needed applications are scp'ed on demand
+	no pre-installation, only a user account is needed
+	needed applications are scp'ed or installed on demand
 
 No database (or database that act like a file system)
 	text files
