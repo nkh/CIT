@@ -1,4 +1,79 @@
 
+from slurm
+	time limit, and other resources
+
+	--depend other_task_id 
+		which for us means other job+config
+		we want this to be dynamic
+		!!! big mistake
+			we want the build system to know about dependencies not the CI
+
+	jobs with unchanged repositories are already done
+
+	/usr/bin/time to get info
+
+replay
+	hmm, simply no!
+		CI is not a versioning system
+
+		what's the real use case for replay?
+			hack around the fact that Jenkins is a crappy development environment
+
+		when is it most often used?
+			to make slight modifications to make it run on jenkins
+				this is eliminated since cit runs on the user's environment
+
+			when a simple change needs to be done but we want to reuse the build directory on jenkins
+				moving the build directory is prohibitive
+				hoping the build will be re-run on the same node
+
+
+getting CI builds locally
+	cit rsynch UUID
+		creates,if necessary, UUID+name directory and rsynch the whole build
+			this can be large and time/cpu consuming if done too often on large builds
+	cit mount UUID
+		leave the build directory on the CI nodes and mount the filesystem in UUID directory
+
+	some operations do not require the copying of the whole build locally
+		we don't need to, we can work on the node directly
+		
+
+restart the build, on the CI node, after modification
+	isn't it a replay?
+
+	we need to save the changes and make them very clear to people using the result
+
+	although the build can be restarted on the node directly, we are logged in to make changes, it is 
+		important that the CI system is not short cut
+
+		if the change is small we want the CI system to prioritize this build
+
+		we want the build to be queued
+
+
+pushing local builds to the CI system
+	in a controlled environment
+
+	a local build and a CI build are the same
+
+	the local build can be pushed to the CI system and made available to other without having to 
+		queue for resources
+		rebuild it on the CI system
+
+
+choosing the build node
+	apart from needed resources, the presence of a previous build is an important point
+		allows us to do incremental builds
+
+environment control
+	we want to do incremental builds, environment control becomes primordial
+		needs to be done by the build system
+			needs to be a separate target and hierarchical
+
+	components can chose between incremental and clean builds
+		build directories must be different for components in case a component wants a "clean" build
+
 application name: cit, or metra
 
 Simple parts connected by clean interfaces
@@ -9,33 +84,87 @@ Simple parts connected by clean interfaces
 		it also act as a log 
 		each file generated during the process is prefixed with the job's name (hash + user given name)
 
+	cit file is a container for multiple types of information (tiff style)
+		CI specific
+		build description
+		build events
+		trace of execution
+		log entries
+		...
+
+		section can be encrypted but have a textual header
+
+		section are tag delimited to make it easy to extract sections on the command line
+
+		preferred format in order
+			tab delimited
+			json
+			yaml
+		
+		sections are versioned 
+	
+		this allows >> in the files (after locking)
+
 Information (Debugging) is a not an afterthought 
 	logging per session in case multiple jobs are being run (see data file interface)
 	messages to stderr with header tag	
 	verbosity level 
 
-	a build must be traceable from birth to completion, including execution rights
+	a job must be traceable from creation to completion, including execution rights
 	
 	tool to step through a CI job instead for looking through logs that may be mixed with 
 		sub tools log output
 
 How do we build a local setup as a CI job?
 	we want to access resources in the cluster and not be bothered by creating a job description
-		cit takes a repo and version  
+		create a script that takes a repo and version and make a cit job 
 			possibly local as the remote job can checkout from our local setup
 
-		cit creates a job description and queues it
+	possibility to build the job on own node not cluster
+		just sugar to avoid doing the steps by hand
+		
+		results get back on the Q
+
+		jobs can start immediately
+			thus moving jobs from the in-Q to waiting-Q tries to schedule the jobs
+
+
+	from a job, created from someone else, one can get the commands to setup the job locally
+		IE: take a cit job description and run it locally
+
+adding the current machine to the build cluster
+	cit add-builder info_file
+
+	allows anyone to add one's machine to the cluster
+		what are the security implications?
+
+	info_file describes
+		the resources
+			how many concurrent jobs
+			
+		the node has and permissions
+			we can check permissions with pki
+
+	this mechanism allows an easy management of the build nodes for the admins
+		ssh to a node
+			cit add-builder info_file
+
+
+	equivalent cit commands for:
+		remove
+			what if jobs are running
+
+		pause/restart
+
+		get info (ls)
 
 
 how do we get a status after the job is build
 	the status exists on the cluster node where the build was done
 	the status exists in the done-Queue
 		done-Q is
-			per job
-			all jobs
-			my jobs
-			...
-
+			per job, all jobs, my jobs, job ID
+			just one type, the rest derived on demand
 	
 	the status is send from the job on the cluster node back to the main done-queue
 		a job is run by "cit run" job_id
@@ -43,10 +172,11 @@ how do we get a status after the job is build
 				failure
 				or success
 
-			cit run updated the done-Q (and maybe success or failure Qs)
+			cit run updates the done-Q (and maybe success or failure Qs)
 				the status is kept on the cluster node before sending it to the done-Q
-					maybe in the job itself as a build artefact
+					in case the "central" Q is off line
 
+					extra information can be added to the job before synchronizing it
 
 	done-job extra information is up to the job itself
 		if the information is a log, the log could be queried for ongoing job status
@@ -57,9 +187,6 @@ how do we get a status after the job is build
 		"cit run" can update the ongoing-Q by synchronizing the log from cluster node to ongoing-Q node
 
 		 
-
-
-
 CI framework doesn't know how to start builds
 	only user knows how a build is done
 		total separation CI - build system
@@ -569,8 +696,19 @@ how do we handle "latest"?
 
 
 backup of scheduling data and build data
+	pause the Qs, tarball them
 	
-		
+note
+	cit is more like a pipeline of commands than an application
 
+	the system is ahdhoc by design
 
+	the system is self describing by design to reduce the need of a central control
+		no data structure describes the system, information must be gather at run time
+
+	documentation of intermediary data is paramount as there is no central mechanism to query
+
+	new steps can be added independently from the "core" implementation
+
+	
 

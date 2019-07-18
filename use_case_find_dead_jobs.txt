@@ -1,9 +1,86 @@
-each morning
-	look at all the jobs still running
+use case
+	each morning, 	look at all the jobs still running
 		find the jobs that run longer than the average
 			find information on them
 				kill the jobs that should be killed
 
+job still running
+	jobs that did not get confirmation of end
+		found in the running Q
+
+	this also means that we can show the run time
+
+	do we have a "still alive" signal coming from the builds?
+
+	how do we stop a build from modifying another build's data in the queues
+		case: 
+			job 1, user A started
+			job 2, user A started
+
+			job 1 puts job_1_A_update in run Q
+				data belongs to A
+
+			job 2 overrides job_1_A by accident
+				possible because job 2 and job 1 have the same A owner
+
+		have Qs per jobs 
+			this reduces the risk but A can still access all A's Qs
+	
+		generate a user to own a directory) and key for ssh per job
+			access to the Q requires the key
+				keys are only used for logging in
+				do we make a user for each job? (heavy)
+				
+
+		let cit own job Q and provide api which can modify the Qs
+			a key needs to be associated with each job or anyone can
+				access a Q given a UID
+
+
+			bleahh! so much nicer when cit doesn't do anything at all
+				
+Q management by admin and by job owner
+	list jobs
+		main Q
+		running Q
+		done Q
+			will need some sorting to not have too many files in a directory
+				difficult to get overview (can create temporary "link" directories)
+
+		do we have Qs per groups/owners (tabs in Jenkins)
+			link to jobs in CIT's Qs
+
+
+	extract information about the jobs
+	
+	remove jobs
+
+	change priority of jobs (always down for users)
+		on build nodes
+			user, buy logging into the nodes and running a cit command
+			need to ask the user to do that
+				need a CIT -> user protocols for the different commands
+					mehhhhh! complicates things for nothing		
+
+		in the Qs
+			user by changing meta data
+			CIT by changing meta data, mehhhh! job is not CIT's job
+	pause jobs
+		in the Queues
+			need a paused Q
+
+		on the build nodes
+
+
+
+longer than  average run time
+	this means a statistic is run and kept
+		who does it? do we want that process, NO
+			
+	we could find processes that are
+		sleeping
+		zombie
+		...
 
 how is that done in cit
 	some automated processing
@@ -76,6 +153,19 @@ generate "kill list" is a job
 		complexity of job is not limited by cit's API (so we don't need an API at all)
 
 
+killing a job
+	the jobs are run under a useri, cit is not that user 
+
+	how does the job get killed
+		we could sudo and kill it but
+			not the way we want to handle access rights
+			cit has no knowledge of the job structure
+
+		we ask the user to kill it
+			job is run by "cit run" as the user
+				"cit run" can listen to HUP the job
+			
+		the job may have a specific shutdown procedure, killing it is wrong
 
 job scheduling
 	cron
@@ -103,8 +193,6 @@ blocking jobs
 	cit command
 		shows the state of the job (by polling and sleeping, like top)
 		at specific stages, imports data from the job and displays them
-
-
 
 killing jobs
 	remove them from the Q if they are still there
