@@ -38,18 +38,27 @@ job still running
 
 
 			bleahh! so much nicer when cit doesn't do anything at all
-				
+
 Q management by admin and by job owner
 	list jobs
-		main Q
+		wait Q
 		running Q
 		done Q
 			will need some sorting to not have too many files in a directory
 				difficult to get overview (can create temporary "link" directories)
 
-		do we have Qs per groups/owners (tabs in Jenkins)
+		do we have Qs per groups/owners (views in Jenkins)
 			link to jobs in CIT's Qs
 
+			could be the result of running some user-defined code
+			that does aggregation and filtering of jobs using cit 
+			commands e.g. "cit ls".
+				this removes the need to implement views in cit (becomes user script)
+				also allows users to create as many views as they want
+
+				=> views are not part of CIT
+			
+			view are a type of report
 
 	extract information about the jobs
 	
@@ -57,13 +66,12 @@ Q management by admin and by job owner
 
 	change priority of jobs (always down for users)
 		on build nodes
-			user, buy logging into the nodes and running a cit command
-			need to ask the user to do that
-				need a CIT -> user protocols for the different commands
-					mehhhhh! complicates things for nothing		
+			user or root by logging into the nodes and running a cit command
+				do we still need a CIT -> user protocol for the
+				different commands?
 
 		in the Qs
-			user by changing meta data
+			user or root by changing meta data
 			CIT by changing meta data, mehhhh! job is not CIT's job
 	pause jobs
 		in the Queues
@@ -103,7 +111,7 @@ generate "kill list" is a job
 
 	it can do automated administration
 
-	or it can create a "kill job" for interactive validation
+	or it can create a "kill job" for interactive validation (promoted builds in jenkins)
 			
 	"kill job" can be delivered 
 		as a mail
@@ -166,6 +174,7 @@ killing a job
 				"cit run" can listen to HUP the job
 			
 		the job may have a specific shutdown procedure, killing it is wrong
+			can we kill it if we check first that the job traps SIGTERM/SIGINT?
 
 job scheduling
 	cron

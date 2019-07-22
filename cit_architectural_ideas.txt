@@ -1,3 +1,6 @@
+cluster management
+	from batch(1)
+		run job if the load level in /proc/loadavg is below some threshold
 
 from slurm
 	time limit, and other resources
@@ -98,9 +101,12 @@ Simple parts connected by clean interfaces
 
 		preferred format in order
 			tab delimited
+			TOML (simple: key=value pairs under [sections]) (send link)
+			XML (XML >> json because it has validation)
 			json
 			yaml
-		
+			tarball
+
 		sections are versioned 
 	
 		this allows >> in the files (after locking)
@@ -329,8 +335,10 @@ Q and job description
 			
 			needed artefacts
 			...
-		or it can be files in a git repo (alex's idea, needs explanation)
-			good way to keep history although file in a history directory work simpler	
+		or it can be files in a git repo (that way, when someone
+		contributes a section to the file, each contribution is tracked.
+		maybe not necessary if the files are append-only)
+			good way to keep history although file in a history directory work simpler
 
 	cit command to suspend and restart the cron job running the queue manager
 		log who runs it
@@ -706,7 +714,10 @@ note
 	the system is self describing by design to reduce the need of a central control
 		no data structure describes the system, information must be gather at run time
 
-	documentation of intermediary data is paramount as there is no central mechanism to query
+	documentation of intermediary data is paramount as there is no
+		central mechanism to query
+			this also makes validation extra important. The user could
+		:	validate the input file with "cit -c info_file" 
 
 	new steps can be added independently from the "core" implementation
 
