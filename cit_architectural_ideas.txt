@@ -1,18 +1,14 @@
 cluster management
-	from batch(1)
-		run job if the load level in /proc/loadavg is below some threshold
+	run job if the load level in /proc/loadavg is below some threshold
+		see  batch(1)
 
-from slurm
-	time limit, and other resources
+time limit (not CI, cluster/build management)
+	timeout (1)
 
-	--depend other_task_id 
-		which for us means other job+config
-		we want this to be dynamic
-		!!! big mistake
-			we want the build system to know about dependencies not the CI
+optimization
+	check locally if a job needs to Queued before pushing it to the Q
 
-	jobs with unchanged repositories are already done
-
+not CI, build system timing information
 	/usr/bin/time to get info
 
 replay
@@ -30,8 +26,11 @@ replay
 				moving the build directory is prohibitive
 				hoping the build will be re-run on the same node
 
+	=> use normal development strategies
 
 getting CI builds locally
+	utility not CI
+
 	cit rsynch UUID
 		creates,if necessary, UUID+name directory and rsynch the whole build
 			this can be large and time/cpu consuming if done too often on large builds
@@ -55,7 +54,17 @@ restart the build, on the CI node, after modification
 		we want the build to be queued
 
 
+stash
+	make local archive
+	stash url to archive on "master"
+
+	unstash
+		get url
+		scp
+
 pushing local builds to the CI system
+	not CI, code/binary management
+
 	in a controlled environment
 
 	a local build and a CI build are the same
@@ -63,11 +72,23 @@ pushing local builds to the CI system
 	the local build can be pushed to the CI system and made available to other without having to 
 		queue for resources
 		rebuild it on the CI system
+	
+	local binaries can shorten the build time on CI
+		binary repo from client to server!!!
+
+	can be used between developers, send my binaries so helper doesn't need to build
+		helper can send back what he has build
+
+		=> better, let helper ssh on own machine
 
 
-choosing the build node
-	apart from needed resources, the presence of a previous build is an important point
+choosing the build node (affinity/scheduling)
+	apart from needed resources, the presence of a previous build is an important
 		allows us to do incremental builds
+
+	CI runs executable which source is in the job data
+		in sandbox (docker, chroot)
+			allows job_scheduler to install resources for computation of go/no-go of job build
 
 environment control
 	we want to do incremental builds, environment control becomes primordial
@@ -76,6 +97,14 @@ environment control
 
 	components can chose between incremental and clean builds
 		build directories must be different for components in case a component wants a "clean" build
+
+	build system use chroot/docker to sandbox
+		this allows build on local machine with same build system 
+
+		if "base images" exist to be reused, we must still check the versions of dependencies 
+		that are installed and install them if not matching 
+
+***
 
 application name: cit, or metra
 
