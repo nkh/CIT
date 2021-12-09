@@ -1,12 +1,60 @@
+handling credentials in a CI job
+	jenkins offers a key ring but that works only if all jobs run under a user which access rights
+
+	one way to avoid the problem is to do all the checkouts locally and send the file system for builds to the CI system
+		CI system just handle allocation of cpu not credentials
+
+	one tool that can be used to simplify the sending of the checkout files is docker
+		either build an image with files checkout out, that needs to be done for every build with code change
+		or checkout the files in the container and commit it
+
+		the local machine can act as a docker hub, the CI system can pull the image from it
+			if the image was previously pulled only the new fs layer will need to be synchronized
+
+		after the build the container can be commited and the build originator can pull the image from the ci system to further work in it or debug if necessary
+
+	encryption of the layers would ensure security
+		encryption of the transport layer is also a possibility
+
+	we also need to insure that the run is secure, either by 
+		securing the build node
+		securing the run of the docker container
+
+
+
+job slaves
+	a job may be running on multiple slaves (at the same time or sequentially)
+		we need to know what has been run where
+
+commit to build, builds to commit, and sequential list of builds
+	given a commits in one or multiple repositories
+		find all the builds that include the commits
+		find all the build started because of those commits
+		
+	generally, keep a commit to build information in the builds
+
+	find the builds, failing or passing, after commits where made
+
+
+No central Queue
+	make the whole system p2p
+	list advantages and drawbacks
+
+
+job comment
+	cit -m 'manual start because we have sone something special, .....
+	the job comment is shown when listing the current jobs
+		if the build supports it, cit info could query the build/job
+			more likely that cit gives information where the job is jun
+
+			ssh $(cit where) make info
+
 cluster management
 	run job if the load level in /proc/loadavg is below some threshold
 		see  batch(1)
 
 time limit (not CI, cluster/build management)
 	timeout (1)
-
-optimization
-	check locally if a job needs to Queued before pushing it to the Q
 
 not CI, build system timing information
 	/usr/bin/time to get info
@@ -28,6 +76,18 @@ replay
 
 	=> use normal development strategies
 
+	if changes are made, on the build node and committed, the job needs to reflect the changes
+		otherwise re-running th job would give a different result
+		
+		the broken job will already have reported its failure thus this means
+		that it's a new job, one that didn't go through queueing 
+
+		or we can see it like, a new job which needs to run on the node where the modification 
+		was done (artefacts are there)
+
+	if the change is made on a no-cluster node this is equivalent to pushing a done-job to the 
+		done-queue; artefacts must be pushed to a cluster node or made available form build box
+
 getting CI builds locally
 	utility not CI
 
@@ -39,7 +99,7 @@ getting CI builds locally
 
 	some operations do not require the copying of the whole build locally
 		we don't need to, we can work on the node directly
-		
+		how do we stop cleanup of workspace while working on it?
 
 restart the build, on the CI node, after modification
 	isn't it a replay?
@@ -62,6 +122,12 @@ stash
 		get url
 		scp
 
+	build nodes may not be on the same network
+		use third party service
+		use url
+
+	stashes can be encrypted for security
+
 pushing local builds to the CI system
 	not CI, code/binary management
 
@@ -74,13 +140,12 @@ pushing local builds to the CI system
 		rebuild it on the CI system
 	
 	local binaries can shorten the build time on CI
-		binary repo from client to server!!!
+		binary repo from client to server!
 
 	can be used between developers, send my binaries so helper doesn't need to build
 		helper can send back what he has build
 
 		=> better, let helper ssh on own machine
-
 
 choosing the build node (affinity/scheduling)
 	apart from needed resources, the presence of a previous build is an important
@@ -97,6 +162,7 @@ environment control
 
 	components can chose between incremental and clean builds
 		build directories must be different for components in case a component wants a "clean" build
+		or cleanup the component build directory
 
 	build system use chroot/docker to sandbox
 		this allows build on local machine with same build system 
@@ -104,26 +170,63 @@ environment control
 		if "base images" exist to be reused, we must still check the versions of dependencies 
 		that are installed and install them if not matching 
 
-***
+application name: cit, or metra, "latests"
 
-application name: cit, or metra
+CI uses the configuration management system to freeze "latest" into 
+the version used during the build
 
-Simple parts connected by clean interfaces
+	CI -> fix versions -> CM
+		<- fixed version
+	CI -> Queue build -> Q -> CI scheduler
+		-> build -> build system
+
+cit computes affinity before pushing jobs in queue
+
+Simple parts connected by "clean" interfaces
 	part are easy to replace
-	part can be written in any language, will be written in multiple languages!
+	part can will be written in multiple languages!
 
 	Interface is always a data file to help with debugging
 		it also act as a log 
 		each file generated during the process is prefixed with the job's name (hash + user given name)
 
 	cit file is a container for multiple types of information (tiff style)
-		CI specific
-		build description
-		build events
-		trace of execution
-		log entries
-		...
-
+		CI setup:
+			generate UUID for integration
+			reference to BUILD setup
+			hosts: host1+key host2+key 
+				key allows scheduler to log onto the build nodes
+					and run
+						compute affinity cost
+						can build now?
+						build
+			affinity:
+				config:
+					gcc 4.15
+					mathlab
+					run: bash cat /proc/loadavg < 12
+			scheduling:
+			...
+		BUILD setup: 
+			configure: ...
+			build description
+			configuration for the build
+				use_module_x = 1
+				build_log_file = ...
+		BUILD setup module X: 
+			build description
+			configuration for the build
+				...
+		CIT log:
+			generate UUID, where
+			Queued nadim@his_box -> CI-Q@CI_Q_box
+			started scheduler: no candidates
+			started scheduler: candites: A, B
+			send to B Queue
+			...
+			Integration done
+ 
+***
 		section can be encrypted but have a textual header
 
 		section are tag delimited to make it easy to extract sections on the command line
@@ -149,6 +252,7 @@ Information (Debugging) is a not an afterthought
 	
 	tool to step through a CI job instead for looking through logs that may be mixed with 
 		sub tools log output
+			have different logs
 
 How do we build a local setup as a CI job?
 	we want to access resources in the cluster and not be bothered by creating a job description
@@ -164,7 +268,7 @@ How do we build a local setup as a CI job?
 			thus moving jobs from the in-Q to waiting-Q tries to schedule the jobs
 
 
-	from a job, created from someone else, one can get the commands to setup the job locally
+	from a job, created by someone else, one can get the commands to setup the job locally
 		IE: take a cit job description and run it locally
 
 adding the current machine to the build cluster
@@ -266,8 +370,6 @@ CI framework doesn't know how to start builds
 			for specific user
 			extra permissions can be embedded in the job
 
-	
-
 the continuous integration framework consists of a set of small programs that can be used
 	by the user, the automation system that builds components
 
@@ -276,6 +378,8 @@ No master
 		no they don't it's just a normal user, they need to be cron'ed
 		but the node where they run is irrelevant if the data they need
 		is accessible and the job queuers know where to find it
+
+		use discovery instead for fix IP?
 
 	Q data
 		Q can be synchronized to any amount of nodes for replication/backup
@@ -324,6 +428,22 @@ triggers
 
 	how does one make a trigger inactive ?
 		application specific, can be as simple as a '#' in a configuration file
+
+use discovery instead for fix IP
+	we should have the possibility to do both as fix ip has advantages too
+
+	discovery if for the Queue and the build nodes
+
+	discovery means a service
+		it  could be used to deliver capacity information needed for scheduling
+
+		we don't want services at least none specific to cit
+
+		what about an account?
+			scan network, ssh as cit on the nodes, read a capacity file
+
+			using cit commands we can easily enable/disable the cit account and
+			modify the capacity file (using a text editor)
 
 No service
 	except basic unix services, cron, sshd.
@@ -443,6 +563,7 @@ seeing builds
 	gotty, wtty, .. ?
 
 	https://metacpan.org/pod/release/BBB/ttylog-0.83/ttylog
+	https://github.com/nbedos/cistern
 
 	script -o in file that can be scp'ed
 	ttyrec
